@@ -1,20 +1,15 @@
 /// Adds UEFI information to a kernel file to make it bootable via UEFI.
 ///
-/// The original kernel file must be named "kernel" and must be located in the directory this
-/// command is run from. A UEFI-enabled copy of this file is saved in the same directory and named
-/// "kernel_uefi".
-///
-/// This file can be run with:
-/// `qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -drive file=kernel_uefi,format=raw,index=0,media=disk`
-///
-/// The "OVMF" part should point to the UEFI implementation you wish to use for booting. The path
-/// is correct for Kubuntu 24.04 with the ovmf package installed.
-
+/// The kernel source needs to be compiled before it can be made bootable and this must be done
+/// using Cargo's binary artifact dependency functionality so that its location is set in an
+/// environment variable before this file is built. The UEFI-enabled kernel is saved in the same
+/// directory as the kernel object and has the same name with "_uefi" appended.
 use bootloader::UefiBoot;
 use std::path::Path;
 use std::process::Command;
 
 const UEFI_EXTENSION: &str = "_uefi";
+const UEFI_FIRMWARE_PATH: &str = "/usr/share/ovmf/OVMF.fd"; // Set to location of OVMF firmware
 
 fn main() {
     let kernel_path_env: &'static str = env!("CARGO_BIN_FILE_KERNEL_kernel");
@@ -28,9 +23,16 @@ fn main() {
         .expect("Failed to create a UEFI-enabled version of your kernel image");
 
     let mut cmd = Command::new("qemu-system-x86_64");
-    cmd.arg("-bios").arg("/usr/share/ovmf/OVMF.fd");
-    cmd.arg("-drive").arg(format!("file={},format=raw,index=0,media=disk", bootable_kernel_path.display()));
+    cmd.arg("-bios").arg(UEFI_FIRMWARE_PATH);
+    cmd.arg("-drive").arg(format!(
+        "file={},format=raw,index=0,media=disk",
+        bootable_kernel_path.display()
+    ));
 
-    let mut child = cmd.spawn().expect("Failed to run 'qemu' on the bootable kernel image");
-    child.wait().expect("qemu terminated with an exit status indicating a failure");
+    let mut child = cmd
+        .spawn()
+        .expect("Failed to run 'qemu' on the bootable kernel image");
+    child
+        .wait()
+        .expect("qemu terminated with an exit status indicating a failure");
 }
