@@ -51,6 +51,10 @@ Cargo sets an environment variable named _CARGO_BIN_FILE_KERNEL_kernel_ to the f
 Modify the existing _add_uefi_boot_ source code by:
 
 * Removing the line setting the **KERNEL_IMAGE_NAME** constant.
+* Adding a constant holding the location of the OVMF firmware provided by the **ovmf** package on the operating system:
+```rust
+    const UEFI_FIRMWARE_PATH: &str = "/usr/share/ovmf/OVMF.fd";
+```
 * Adding the following line as the first line of **main()** to obtain the file path and name of the kernel object file:
 ```rust
     let kernel_path_env: &'static str = env!("CARGO_BIN_FILE_KERNEL_kernel");
@@ -63,8 +67,8 @@ Modify the existing _add_uefi_boot_ source code by:
 * Adding the following lines at the end of **main()** to display the qemu command that runs the UEFI-enabled kernel:  
 ```rust
     println!("Successfully created a UEFI-enabled version of the kernel image. Run with:");
-    println!("qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd \\");
-    println!("    -drive file={},format=raw,index=0,media=disk", bootable_kernel_path.display());
+    print!("qemu-system-x86_64 -bios {UEFI_FIRMWARE_PATH} ");
+    println!("-drive file={},format=raw,index=0,media=disk", bootable_kernel_path.display());
 ```
 
 Attempting to run with:
@@ -78,7 +82,7 @@ Caused by:
  `artifact = …` requires `-Z bindeps` (kernel)
 ```
 
-This is because Cargo's binary artifact dependency functionality is unstable at the time of writing. Fix it by enabling this functionality in Cargo's configuration:
+This is because Cargo's binary artifact dependency functionality is unstable at the time of writing. Fix the problem by enabling this functionality in Cargo's configuration by running:
 ```bash
 mkdir .cargo
 cat >.cargo/config.toml <<EOF
@@ -102,10 +106,10 @@ Rather than _add_uefi_boot_ displaying the qemu command to run, its code can be 
 use std::process::Command;
 ```
 
-and replace the println statements that display the qemu command with:
+and replace the _println_ and _print_ statements that display the qemu command with:
 ```rust
     let mut cmd = Command::new("qemu-system-x86_64");
-    cmd.arg("-bios").arg("/usr/share/ovmf/OVMF.fd");
+    cmd.arg("-bios").arg(UEFI_FIRMWARE_PATH);
     cmd.arg("-drive").arg(format!("file={},format=raw,index=0,media=disk", bootable_kernel_path.display()));
 
     let mut child = cmd.spawn().expect("Failed to run 'qemu' on the bootable kernel image");
