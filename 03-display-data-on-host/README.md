@@ -64,8 +64,9 @@ fn host_write(s: &str) {
     let mut qemu_console_port = Port::new(0xE9);
     
     for b in s.bytes() {
-        unsafe { qemu_console_port.write(b); }
-
+        unsafe { 
+            qemu_console_port.write(b); 
+        }
     }
 }
 ```
@@ -83,6 +84,34 @@ cargo run -p add_uefi_boot
 ```
 
 and it should now output "Hello world!" and a newline.
+
+## Create the Port Only Once
+
+The current code recreates the same `Port` for each string written, which is wasteful and which could cause issues if the kernel is improved to be multi-threaded and multiple threads output simultaneously. The first problem could be solved by creating a single `Port` as a mutable static, e.g.:
+```rust
+    // In the src/main.rs file
+
+    pub static mut QEMU_CONSOLE_PORT: PortGeneric<u8, ReadWriteAccess> = Port::new(0xE9);
+```
+
+However, this results in a compiler warning that "creating a mutable reference to mutable static is discouraged" with additional information stating that "mutable references to mutable statics are dangerous; it's undefined behavior if any other pointer to the static is used or if any other reference is created for the static while the mutable reference lives". This is the second problem identified above.
+
+A `Mutex` is a typical way of implementing locking that would fix the problem, but it is part of the standard library, so unavailable. One solution is to use a much simpler locking mechanism called a _spinlock_, which enters a tight loop waiting for a resource to become available rather than implementing the more sophisticated system used by `Mutex`. This technique is described in this section on [Philipp Oppermann's blog](https://os.phil-opp.com/vga-text-mode/#spinlocks). To create a single `Port` for the debugging console that is protected by a spinlock-based Mutex and which lasts the lifetime of the program, first add the following line to the kernel:
+
+
+```rust
+    // In the src/main.rs file
+    pub static QEMU_CONSOLE_PORT: Mutex<PortGeneric<u8, ReadWriteAccess>> = Mutex::new(Port::new(0xE9));
+```
+
+Then change the code that writes to the debugging port to:
+```rust
+        unsafe {
+            QEMU_CONSOLE_PORT.lock().write(b);
+        }
+```
+
+This attempts to lock the debugging console port, and when the lock succeeds, the string passed to the function is written to the debugging port one byte at a time.
 
 ## Alternative Implementation
 

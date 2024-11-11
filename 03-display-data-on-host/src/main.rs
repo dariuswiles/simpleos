@@ -6,7 +6,12 @@
 
 use bootloader_api;
 use core::panic::PanicInfo;
-use x86_64::instructions::port::Port;
+use spin::Mutex;
+use x86_64::instructions::port::{Port, PortGeneric, ReadWriteAccess};
+
+// A single instance of a QEMU debugging console `Port`, protected against multiple accesses by a
+// spinlock-based `Mutex`.
+pub static QEMU_CONSOLE_PORT: Mutex<PortGeneric<u8, ReadWriteAccess>> = Mutex::new(Port::new(0xE9));
 
 // Specifies the name of the function that should be invoked by the bootloader when it hands
 // control to this code. The function name is arbitrary.
@@ -24,10 +29,10 @@ fn simpleos_main(_bootinfo: &'static mut bootloader_api::BootInfo) -> ! {
 /// must be passed when QEMU is invoked. A newline is not appended to the string, so must be
 /// included if desired.
 fn host_write(s: &str) {
-    let mut qemu_console_port = Port::new(0xE9);
-
     for b in s.bytes() {
-        unsafe { qemu_console_port.write(b); }
+        unsafe {
+            QEMU_CONSOLE_PORT.lock().write(b);
+        }
     }
 }
 
