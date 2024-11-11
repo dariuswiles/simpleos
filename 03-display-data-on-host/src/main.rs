@@ -5,8 +5,8 @@
 //! simply loops forever.
 
 use bootloader_api;
-use core::arch;
 use core::panic::PanicInfo;
+use x86_64::instructions::port::Port;
 
 // Specifies the name of the function that should be invoked by the bootloader when it hands
 // control to this code. The function name is arbitrary.
@@ -24,13 +24,10 @@ fn simpleos_main(_bootinfo: &'static mut bootloader_api::BootInfo) -> ! {
 /// must be passed when QEMU is invoked. A newline is not appended to the string, so must be
 /// included if desired.
 fn host_write(s: &str) {
+    let mut qemu_console_port = Port::new(0xE9);
+
     for b in s.bytes() {
-        unsafe {
-            arch::asm! {
-                "out 0xE9, {}", // 0xE9 is the I/O address of the QEMU debug console
-                in(reg_byte) b
-            }
-        }
+        unsafe { qemu_console_port.write(b); }
     }
 }
 
