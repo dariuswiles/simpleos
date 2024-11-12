@@ -1,8 +1,10 @@
 #![no_main] // Prevents the compiler from "emitting the main symbol for an executable binary".
 #![no_std] // Prevents the linking of Rust's standard library.
 
-//! A freestanding kernel based on example code in the `bootloader` and `bootloader_api` crates. It
-//! simply loops forever.
+//! A freestanding kernel based on example code in the `bootloader` and `bootloader_api` crates, and
+//! Philipp Oppermann's blog on writing a kernel in Rust at <https://os.phil-opp.com/>.
+//!
+//! It sends a message to the host OS's console from which QEMU was invoked, then loops forever.
 
 use bootloader_api;
 use core::panic::PanicInfo;
