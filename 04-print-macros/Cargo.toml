@@ -1,0 +1,24 @@
+cargo-features = ["per-package-target"]  # Required to use unstable "package.default-target" feature
+
+[package]
+name = "kernel"
+version = "0.1.0"
+edition = "2021"
+default-target = "x86_64-unknown-none"
+
+[workspace]
+members = [
+    "add_uefi_boot",
+]
+resolver = "2"
+
+[dependencies]
+bootloader_api = "0.11"
+spin = "0.9"
+x86_64 = "0.15"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
