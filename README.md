@@ -11,6 +11,7 @@ The repository is separated into phases, each a self-contained Git project conta
 | [01-minimal-kernel](01-minimal-kernel) | A tiny kernel that just loops forever. The main goal with this phase is to create a kernel that builds and runs. |
 | [02-build-automation](02-build-automation) | The build system is automated so that the kernel can be built and run with qemu in a single command. No changes are made to the kernel. |
 | [03-display-data-on-host](03-display-data-on-host) | Add the ability to output text to the host's console from which QEMU was run. |
+| [04-print-macros](04-print-macros) | Implement _print!_ and _println!_ macros to make it easier to output formatted data. |
 
 
 

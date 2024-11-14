@@ -59,6 +59,10 @@ impl Write for HostWriter {
 All that remains is to implement the `_print` function. This needs to pass the `fmt::Arguments` output from `format_args!` to the new `write_str` method. Add the following new function to the kernel:
 
 ```rust
+<<<<<<< HEAD
+=======
+// In src/main.rs 
+>>>>>>> e7886fd (Add phase 4, which implements print and println macros)
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
     let mut hw = HostWriter {};
@@ -74,6 +78,10 @@ A macro that appends a newline to the arguments passed, or outputs just a newlin
 
 ```rust
 #[macro_export]
+<<<<<<< HEAD
+=======
+// In src/main.rs 
+>>>>>>> e7886fd (Add phase 4, which implements print and println macros)
 macro_rules! println {
     () => (crate::print!("\n"));
     ($($arg:tt)*) => {{
@@ -82,6 +90,7 @@ macro_rules! println {
 }
 ```
 
+<<<<<<< HEAD
 This has two matching rules that handle the case of no arguments and some arguments respectively. Both call the `print!` macro created earlier.
 
 ## Testing the New Macros
@@ -89,6 +98,16 @@ This has two matching rules that handle the case of no arguments and some argume
 The two new macros can now be tested by temporarily adding code to the kernel, e.g.:
 
 ```rust
+=======
+This has two matching rules that handle the case of no arguments and some arguments respectively. Both call the `print!` macro created earlier. The "macro_export" attribute defines the macro at the crate's root and makes the macro public.
+
+## Testing the New Macros
+
+The two new macros can now be tested by adding the following code to the kernel:
+
+```rust
+// In the simpleos_main function of src/main.rs
+>>>>>>> e7886fd (Add phase 4, which implements print and println macros)
     let n = 1234;
     let arr = [2.6, f64::NAN, -10.3];
     print!("Printing integer '{n}' and array of floats {:?} with no newline. ", arr);
@@ -101,6 +120,64 @@ The two new macros can now be tested by temporarily adding code to the kernel, e
     println!("{}", "Two blank lines should be printed above this line");
 ```
 
+<<<<<<< HEAD
+=======
+## Moving the New Code to a New Module
+
+To stop the src/main.rs code getting cluttered with the console printing code, move the latter into a new file in the same directory with the following abbreviated contents:
+
+```rust
+// In new file src/qemu_console.rs
+
+use core::fmt::{self, Write};
+use spin::Mutex;
+use x86_64::instructions::port::{Port, PortGeneric, ReadWriteAccess};
+
+pub static QEMU_CONSOLE_PORT: Mutex<PortGeneric<u8, ReadWriteAccess>> = Mutex::new(Port::new(0xE9));
+
+struct HostWriter {}
+
+impl Write for HostWriter {
+    // contents removed for brevity
+}
+
+#[doc(hidden)]
+pub fn _print(args: fmt::Arguments) {
+    let mut hw = HostWriter {};
+    hw.write_fmt(args).unwrap();
+}
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => {{
+        $crate::qemu_console::_print(format_args!($($arg)*)); // Changed code
+    }};
+}
+
+#[macro_export]
+macro_rules! println {
+    () => (crate::print!("\n"));
+    ($($arg:tt)*) => {{
+        crate::print!("{}\n", format_args!($($arg)*));
+    }};
+}
+```
+
+Note the change to the `print!` macro which now requires the name of the module added to the path to call `_print()`.
+
+In addition to removing items moved to the new file, remove the following line from src/main.rs:
+```rust
+// In main.rs
+use core::fmt::{self, Write}; // Delete this line
+```
+
+and add the following to the same file to pull in the new _qemu_console_ module:
+```rust
+// In main.rs
+mod qemu_console;
+```
+
+>>>>>>> e7886fd (Add phase 4, which implements print and println macros)
 ## Summary
 
 `print!` and `println!` macros that behave in the same way as their standard library counterparts were added, except that output is sent to QEMU's debugging console port.
