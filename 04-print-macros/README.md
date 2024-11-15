@@ -40,7 +40,7 @@ Rather than attempting to understand the `fmt::Arguments` type, a simple way of 
 The `host_write` method is close to what's required, except that it now needs to return a `Result`. It also needs to be a method in a new `struct` which implements `Write`. Performing all these changes converts the existing `host_write` method to:
 
 ```rust
-// In src/main.rs to replace the host_write function
+// In src/main.rs to replace the host_write function with the following
 struct HostWriter {}
 
 impl Write for HostWriter {
@@ -59,10 +59,7 @@ impl Write for HostWriter {
 All that remains is to implement the `_print` function. This needs to pass the `fmt::Arguments` output from `format_args!` to the new `write_str` method. Add the following new function to the kernel:
 
 ```rust
-<<<<<<< HEAD
-=======
 // In src/main.rs 
->>>>>>> e7886fd (Add phase 4, which implements print and println macros)
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
     let mut hw = HostWriter {};
@@ -70,7 +67,7 @@ pub fn _print(args: fmt::Arguments) {
 }
 ```
 
-The attribute is to suppress the function from the documentation as the function is intended to only be used internally. The output from `write_fmt` will always return `Ok`, so it is safe to use `unwrap`.
+The _doc_ attribute suppresses the function from the documentation as the function is intended to only be used internally. The output from `write_fmt` will always return `Ok`, so it is safe to use `unwrap`.
 
 ## `println!` macro
 
@@ -78,10 +75,7 @@ A macro that appends a newline to the arguments passed, or outputs just a newlin
 
 ```rust
 #[macro_export]
-<<<<<<< HEAD
-=======
 // In src/main.rs 
->>>>>>> e7886fd (Add phase 4, which implements print and println macros)
 macro_rules! println {
     () => (crate::print!("\n"));
     ($($arg:tt)*) => {{
@@ -90,16 +84,7 @@ macro_rules! println {
 }
 ```
 
-<<<<<<< HEAD
-This has two matching rules that handle the case of no arguments and some arguments respectively. Both call the `print!` macro created earlier.
-
-## Testing the New Macros
-
-The two new macros can now be tested by temporarily adding code to the kernel, e.g.:
-
-```rust
-=======
-This has two matching rules that handle the case of no arguments and some arguments respectively. Both call the `print!` macro created earlier. The "macro_export" attribute defines the macro at the crate's root and makes the macro public.
+This has two matching rules that handle the case of no arguments and some arguments respectively. Both call the `print!` macro created earlier. The _macro_export_ attribute defines the macro at the crate's root and makes the macro public.
 
 ## Testing the New Macros
 
@@ -107,7 +92,6 @@ The two new macros can now be tested by adding the following code to the kernel:
 
 ```rust
 // In the simpleos_main function of src/main.rs
->>>>>>> e7886fd (Add phase 4, which implements print and println macros)
     let n = 1234;
     let arr = [2.6, f64::NAN, -10.3];
     print!("Printing integer '{n}' and array of floats {:?} with no newline. ", arr);
@@ -120,8 +104,6 @@ The two new macros can now be tested by adding the following code to the kernel:
     println!("{}", "Two blank lines should be printed above this line");
 ```
 
-<<<<<<< HEAD
-=======
 ## Moving the New Code to a New Module
 
 To stop the src/main.rs code getting cluttered with the console printing code, move the latter into a new file in the same directory with the following abbreviated contents:
@@ -177,7 +159,6 @@ and add the following to the same file to pull in the new _qemu_console_ module:
 mod qemu_console;
 ```
 
->>>>>>> e7886fd (Add phase 4, which implements print and println macros)
 ## Summary
 
 `print!` and `println!` macros that behave in the same way as their standard library counterparts were added, except that output is sent to QEMU's debugging console port.
