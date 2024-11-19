@@ -47,8 +47,15 @@ fn simpleos_main(_bootinfo: &'static mut bootloader_api::BootInfo) -> ! {
 /// Cargo.toml in this project to keep things simple. The function name is arbirary as only the
 /// attribute is used to identify which function should be called.
 ///
+/// This function prints a message indicating that the kernel has panicked and the debug output
+/// of the `PanicInfo` object passed, which includes the panic message and the line of code where
+/// the panic occurred.
+///
 /// [1]: https://doc.rust-lang.org/reference/runtime.html#the-panic_handler-attribute
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
+fn panic(panic_info: &PanicInfo) -> ! {
+    println!("\nKERNEL PANIC");
+    println!("{panic_info:#?}");
+
     loop {}
 }

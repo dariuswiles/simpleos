@@ -104,7 +104,7 @@ The two new macros can now be tested by adding the following code to the kernel:
     println!("{}", "Two blank lines should be printed above this line");
 ```
 
-## Moving the New Code to a New Module
+## Moving the New Code to a Separate Module
 
 To stop the src/main.rs code getting cluttered with the console printing code, move the latter into a new file in the same directory with the following abbreviated contents:
 
@@ -149,16 +149,36 @@ Note the change to the `print!` macro which now requires the name of the module 
 
 In addition to removing items moved to the new file, remove the following line from src/main.rs:
 ```rust
-// In main.rs
+// In src/main.rs
 use core::fmt::{self, Write}; // Delete this line
 ```
 
 and add the following to the same file to pull in the new _qemu_console_ module:
 ```rust
-// In main.rs
+// In src/main.rs
 mod qemu_console;
+```
+
+## Display Panic Messages
+
+The `panic()` function which currently just loops forever can become more useful by outputting the data that is passed to it using the new `println!` macro. Replace the `panic()`  as follows:
+
+```rust
+// Replace panic() in src/main.rs with
+fn panic(panic_info: &PanicInfo) -> ! {
+    println!("\nKERNEL PANIC");
+    println!("{panic_info:#?}");
+
+    loop {}
+}
+```
+
+This change can be tested by temporarily adding code that causes a panic before the loop at the end of the `simpleos_main()`. For example:
+```rust
+    // In src/main.rs before the "loop {}" statement
+    assert!(false, "panic message text");
 ```
 
 ## Summary
 
-`print!` and `println!` macros that behave in the same way as their standard library counterparts were added, except that output is sent to QEMU's debugging console port.
+`print!` and `println!` macros that behave in the same way as their standard library counterparts were added, except that output is sent to QEMU's debugging console port. The `panic()` function was improved to make use of this to output debug information before looping forever.
