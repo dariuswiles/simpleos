@@ -4,7 +4,6 @@
 //! A freestanding kernel based on example code in the `bootloader` and `bootloader_api` crates. It
 //! simply loops forever.
 
-use bootloader_api;
 use core::panic::PanicInfo;
 
 // Specifies the name of the function that should be invoked by the bootloader when it hands
@@ -14,6 +13,7 @@ bootloader_api::entry_point!(simpleos_main);
 /// The bootloader invokes this function at the end of its boot process when it is ready to hand
 /// control to the kernel. This implementation simply loops forever.
 fn simpleos_main(_bootinfo: &'static mut bootloader_api::BootInfo) -> ! {
+    #[allow(clippy::empty_loop)]
     loop {}
 }
 
@@ -25,5 +25,6 @@ fn simpleos_main(_bootinfo: &'static mut bootloader_api::BootInfo) -> ! {
 /// [1]: https://doc.rust-lang.org/reference/runtime.html#the-panic_handler-attribute
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
+    #[allow(clippy::empty_loop)]
     loop {}
 }
