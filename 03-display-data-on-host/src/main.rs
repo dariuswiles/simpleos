@@ -6,7 +6,6 @@
 //!
 //! It sends a message to the host OS's console from which QEMU was invoked, then loops forever.
 
-use bootloader_api;
 use core::panic::PanicInfo;
 use spin::Mutex;
 use x86_64::instructions::port::{Port, PortGeneric, ReadWriteAccess};
@@ -24,6 +23,7 @@ bootloader_api::entry_point!(simpleos_main);
 fn simpleos_main(_bootinfo: &'static mut bootloader_api::BootInfo) -> ! {
     host_write("Hello world!\n");
 
+    #[allow(clippy::empty_loop)]
     loop {}
 }
 
@@ -46,5 +46,6 @@ fn host_write(s: &str) {
 /// [1]: https://doc.rust-lang.org/reference/runtime.html#the-panic_handler-attribute
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
+    #[allow(clippy::empty_loop)]
     loop {}
 }
