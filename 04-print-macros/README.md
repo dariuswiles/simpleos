@@ -2,9 +2,7 @@
 
 The code from the previous phase can send data from the kernel to the host's console using QEMU's debugging console feature. However, it would be more ergonomic to wrap this feature in __print!__ and __println!__ macros that work similarly to those in Rust's standard library. That is the objective of this phase.
 
-This phase is closely based on 
-
-Philipp Oppermann's [__Writing an OS in Rust__ blog](https://os.phil-opp.com/), specifically the section about in his [Testing blog about implementing a serial port](https://os.phil-opp.com/testing/#serial-port).
+This phase is closely based on Philipp Oppermann's [__Writing an OS in Rust__ blog](https://os.phil-opp.com/), specifically the section about in his [Testing blog about implementing a serial port](https://os.phil-opp.com/testing/#serial-port).
 
 ## `print!` macro
 
@@ -30,7 +28,7 @@ macro_rules! print {
 }
 ```
 
-A call to the macro will be replaced with a call to an internal `_print` function that will be tackled soon, passing all arguments passed to the macro to a single call to the `core::format_args!` macro. The latter handles all the conversions and substitutions required to replace "{}" in the format string with the other arguments supplied. This includes variations such as "{:?}", and "{variable_name}". The output of `format_args!` has a type of `fmt::Arguments`.
+A call to the macro will be replaced with a call to an internal `_print` function that will be explained soon, passing all arguments passed to the macro to a single call to the `core::format_args!` macro. The latter handles all the conversions and substitutions required to replace "{}" in the format string with the other arguments supplied. This includes variations such as "{:?}", and "{variable_name}". The output of `format_args!` has a type of `fmt::Arguments`.
 
 Rather than attempting to understand the `fmt::Arguments` type, a simple way of using it is to implement the `Write` trait, which provides a `write_fmt` method that takes this type. The only method required to implement the `Write` trait has the signature:
 ```rust
@@ -40,7 +38,7 @@ Rather than attempting to understand the `fmt::Arguments` type, a simple way of 
 The `host_write` method is close to what's required, except that it now needs to return a `Result`. It also needs to be a method in a new `struct` which implements `Write`. Performing all these changes converts the existing `host_write` method to:
 
 ```rust
-// In src/main.rs to replace the host_write function with the following
+// In src/main.rs replace the host_write function with the following
 struct HostWriter {}
 
 impl Write for HostWriter {
@@ -77,9 +75,9 @@ A macro that appends a newline to the arguments passed, or outputs just a newlin
 #[macro_export]
 // In src/main.rs 
 macro_rules! println {
-    () => (crate::print!("\n"));
+    () => ($crate::print!("\n"));
     ($($arg:tt)*) => {{
-        crate::print!("{}\n", format_args!($($arg)*));
+        $crate::print!("{}\n", format_args!($($arg)*));
     }};
 }
 ```
@@ -169,6 +167,7 @@ fn panic(panic_info: &PanicInfo) -> ! {
     println!("\nKERNEL PANIC");
     println!("{panic_info:#?}");
 
+    #[allow(clippy::empty_loop)]
     loop {}
 }
 ```
