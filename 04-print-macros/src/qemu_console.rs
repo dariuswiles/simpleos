@@ -52,8 +52,8 @@ macro_rules! print {
 /// QEMU's debugging console.
 #[macro_export]
 macro_rules! println {
-    () => (crate::print!("\n"));
+    () => ($crate::print!("\n"));
     ($($arg:tt)*) => {{
-        crate::print!("{}\n", format_args!($($arg)*));
+        $crate::print!("{}\n", format_args!($($arg)*));
     }};
 }

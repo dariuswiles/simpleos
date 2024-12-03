@@ -10,7 +10,6 @@
 //! various destinations. For this project, the intention is to direct data to the terminal from
 //! which QEMU is invoked. After sending data, the kernel loops forever.
 
-use bootloader_api;
 use core::panic::PanicInfo;
 use spin::Mutex;
 use x86_64::instructions::port::{Port, PortGeneric, ReadWriteAccess};
@@ -32,13 +31,14 @@ fn simpleos_main(_bootinfo: &'static mut bootloader_api::BootInfo) -> ! {
     let arr = [2.6, f64::NAN, -10.3];
     print!("Printing integer '{n}' and array of floats {:?} with no newline. ", arr);
 
-    const S: &str = &"a slice";
+    const S: &str = "a slice";
     println!("Test printing slice '{S}' with a newline.");
     println!("Test printing slice '{}' with a newline.", S);
     println!();
     println!();
     println!("{}", "Two blank lines should be printed above this line");
 
+    #[allow(clippy::empty_loop)]
     loop {}
 }
 
@@ -57,5 +57,6 @@ fn panic(panic_info: &PanicInfo) -> ! {
     println!("\nKERNEL PANIC");
     println!("{panic_info:#?}");
 
+    #[allow(clippy::empty_loop)]
     loop {}
 }
