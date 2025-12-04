@@ -4,9 +4,9 @@ version = 4
 
 [[package]]
 name = "bootloader_api"
-version = "0.11.7"
+version = "0.11.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a35ba5100c2431e20b924c8103c2cf8adb919ed9880f625e8770c3cb9d1b06aa"
+checksum = "9af2881e494cfadbfd715dc4dd0cd8ff1f3bab70bed96385da250b392f4d91fc"
 
 [[package]]
 name = "kernel"
